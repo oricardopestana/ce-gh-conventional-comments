@@ -1,7 +1,7 @@
 {
   "name": "GitHub - Conventional Comments",
-  "description": "Helps leaving better reviews on PRs",
-  "version": "1.0.2",
+  "description": "Adds a toolbar button to insert Conventional Comments labels (praise, suggestion, nitpick, etc.) in GitHub PR review textareas",
+  "version": "1.0.3",
   "icons": {
     "16": "images/icon-16.png",
     "32": "images/icon-32.png",
