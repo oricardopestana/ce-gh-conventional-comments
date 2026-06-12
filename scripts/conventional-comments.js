@@ -1,14 +1,3 @@
-/**
- * GitHub Conventional Comments Extension
- *
- * Injects a toolbar button into GitHub PR review textareas (line comments,
- * file comments, and review comments). Clicking the button opens a menu
- * to insert a conventional comment label (praise, nitpick, suggestion, etc.)
- * with optional decorations (non-blocking, blocking, if-minor).
- */
-
-// ─── Data ──────────────────────────────────────────────────────────────────────
-
 const LABELS = [
   { label: "praise", description: "Highlight something positive" },
   { label: "nitpick", description: "Trivial preference-based request" },
@@ -27,8 +16,6 @@ const DECORATIONS = [
   { label: "if-minor", description: "Resolve only if changes are minor" },
 ];
 
-// ─── Octicon SVG definitions ───────────────────────────────────────────────────
-
 const OCTICONS = {
   praise:
     '<svg aria-hidden="true" focusable="false" class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="display:inline-block;overflow:visible;vertical-align:text-bottom"><path d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314Z"/></svg>',
@@ -46,21 +33,17 @@ const OCTICONS = {
   chore:
     '<svg aria-hidden="true" focusable="false" class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="display:inline-block;overflow:visible;vertical-align:text-bottom"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7.25-3.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0Z"/></svg>',
   note: '<svg aria-hidden="true" focusable="false" class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="display:inline-block;overflow:visible;vertical-align:text-bottom"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25ZM11 9.5a.75.75 0 0 0 0-1.5H7.333a.75.75 0 0 0 0 1.5Zm0-3.083a.75.75 0 0 0 0-1.5H5a.75.75 0 0 0 0 1.5ZM5.75 12.5a.75.75 0 0 1 0-1.5H11a.75.75 0 0 1 0 1.5Z"/></svg>',
-  // Decorations
   "non-blocking":
     '<svg aria-hidden="true" focusable="false" class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="display:inline-block;overflow:visible;vertical-align:text-bottom"><path d="M4.177 12.744A6.48 6.48 0 0 0 8 14.5a6.48 6.48 0 0 0 3.823-1.256L4.256 5.177A6.48 6.48 0 0 0 3 3.823l1.177 8.921ZM5.67 3.035A6.48 6.48 0 0 1 8 1.5a6.5 6.5 0 0 1 6.5 6.5 6.48 6.48 0 0 1-1.535 4.33l-7.295-7.295ZM8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Z"/></svg>',
   blocking:
     '<svg aria-hidden="true" focusable="false" class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="display:inline-block;overflow:visible;vertical-align:text-bottom"><path d="M4.47 11.53A5.477 5.477 0 0 0 8 13c1.47 0 2.807-.578 3.79-1.523L4.47 4.23A5.485 5.485 0 0 0 2.5 8a5.48 5.48 0 0 0 1.97 3.53Zm7.06-7.06A5.477 5.477 0 0 0 8 3c-1.47 0-2.807.578-3.79 1.523l7.32 7.32A5.485 5.485 0 0 0 13.5 8a5.48 5.48 0 0 0-1.97-3.53ZM8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Z"/></svg>',
   "if-minor":
     '<svg aria-hidden="true" focusable="false" class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="display:inline-block;overflow:visible;vertical-align:text-bottom"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>',
-  // Back arrow
   back: '<svg aria-hidden="true" focusable="false" class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="display:inline-block;overflow:visible;vertical-align:text-bottom"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.22 8.03a.75.75 0 0 1 0-1.06l4.5-4.5a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L5.06 7h8.19a.75.75 0 0 1 0 1.5H5.06l2.72 2.72a.751.751 0 0 1 .018 1.042.751.751 0 0 1-.018.268Z"/></svg>',
-  // Chevron right (for sub-menu indicator)
   chevronRight:
     '<svg aria-hidden="true" focusable="false" class="octicon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" style="display:inline-block;overflow:visible;vertical-align:text-bottom"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"/></svg>',
 };
 
-// Comment bubble with smiley face icon for the toolbar button (adapted from comment.svg)
 const COMMENT_ICON_SVG = [
   '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">',
   '  <path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 13.25 12H9.06l-2.573 2.573A1.458 1.458 0 0 1 4 13.543V12H2.75A1.75 1.75 0 0 1 1 10.25Z"/>',
@@ -69,8 +52,6 @@ const COMMENT_ICON_SVG = [
   '  <path d="M5.5 9.5C5.5 10.5 7 11 8 11s2.5-.5 2.5-1.5"/>',
   "</svg>",
 ].join("\n");
-
-// ─── Shared styles (CSS custom properties for theming) ─────────────────────────
 
 const MENU_STYLES = {
   container: [
@@ -122,8 +103,6 @@ const MENU_STYLES = {
   hoverBg: "#e8eaed",
 };
 
-// ─── ActionList Menu (native GitHub styling) ───────────────────────────────────
-
 function createActionItem(iconSvg, label, description, onClick) {
   const li = document.createElement("li");
   li.setAttribute("role", "menuitem");
@@ -133,19 +112,16 @@ function createActionItem(iconSvg, label, description, onClick) {
   const content = document.createElement("div");
   content.style.cssText = MENU_STYLES.actionItem;
 
-  // Leading visual (icon)
   const iconWrap = document.createElement("span");
   iconWrap.style.cssText = MENU_STYLES.iconWrap;
   iconWrap.innerHTML = iconSvg;
   content.appendChild(iconWrap);
 
-  // Label text
   const labelSpan = document.createElement("span");
   labelSpan.textContent = label;
   labelSpan.style.cssText = MENU_STYLES.labelText;
   content.appendChild(labelSpan);
 
-  // Description (if any)
   if (description) {
     const descSpan = document.createElement("span");
     descSpan.textContent = description;
@@ -176,7 +152,6 @@ function createDivider() {
   return li;
 }
 
-// Build the labels (first-level) panel
 function buildLabelsPanel() {
   const panel = document.createElement("div");
 
@@ -190,11 +165,9 @@ function buildLabelsPanel() {
   return panel;
 }
 
-// Build the decorations (second-level) sub-panel for a given label name
 function buildDecoPanel(labelName) {
   const panel = document.createElement("div");
 
-  // ── Back button ──
   const backLi = document.createElement("li");
   backLi.setAttribute("role", "menuitem");
   backLi.tabIndex = -1;
@@ -223,10 +196,8 @@ function buildDecoPanel(labelName) {
   backLi.addEventListener("click", () => showLabelsPanel());
   panel.appendChild(backLi);
 
-  // Divider after back
   panel.appendChild(createDivider());
 
-  // Options: plain label + decorated variants
   const options = [
     { text: labelName + ":", insert: labelName + ": ", desc: "" },
     ...DECORATIONS.map((d) => ({
@@ -239,7 +210,6 @@ function buildDecoPanel(labelName) {
   options.forEach((opt) => {
     let iconSvg = OCTICONS[labelName] || OCTICONS.note;
     if (opt.desc) {
-      // Find matching decoration to get its icon
       const dec = DECORATIONS.find((d) => opt.text.includes("(" + d.label + ")"));
       if (dec && OCTICONS[dec.label]) {
         iconSvg = OCTICONS[dec.label];
@@ -255,8 +225,6 @@ function buildDecoPanel(labelName) {
 
   return panel;
 }
-
-// ─── Menu container ────────────────────────────────────────────────────────────
 
 const menuEl = document.createElement("div");
 menuEl.id = "gh-conventional-comments-menu";
@@ -319,8 +287,6 @@ function insertAtCursor(text) {
   activeTextarea.focus();
 }
 
-// ─── Toolbar button injection ──────────────────────────────────────────────────
-
 function getTextareaForToolbar(toolbar) {
   const fieldset = toolbar.closest("fieldset");
   if (!fieldset) return null;
@@ -330,10 +296,8 @@ function getTextareaForToolbar(toolbar) {
 }
 
 function injectButton(toolbar) {
-  // Skip if button already injected
   if (toolbar.querySelector("[data-cc-btn]")) return;
 
-  // Find the heading button to use as an insertion anchor
   const headingIcon = toolbar.querySelector(".octicon-heading");
   if (!headingIcon) return;
   const headingBtn = headingIcon.closest("button");
@@ -345,7 +309,6 @@ function injectButton(toolbar) {
   btn.type = "button";
   btn.tabIndex = -1;
 
-  // Match GitHub's toolbar button styling
   const btnClasses = [
     "prc-Button-ButtonBase-9n-Xk",
     "ToolbarButton-module__iconButton__WwwAY",
@@ -366,7 +329,6 @@ function injectButton(toolbar) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Toggle menu
     if (menuEl.style.display === "block" && activeButton === btn) {
       hideMenu();
       return;
@@ -380,34 +342,67 @@ function injectButton(toolbar) {
     showMenu(btn);
   });
 
-  // Insert before the heading button (first button in the toolbar)
   headingBtn.parentNode.insertBefore(btn, headingBtn);
 }
-
-// ─── Observe DOM for formatting toolbars ───────────────────────────────────────
 
 function findAndInject() {
   document.querySelectorAll('[aria-label="Formatting tools"]').forEach(injectButton);
 }
 
-// Hide menu on click outside
 document.addEventListener("click", (event) => {
   if (menuEl.style.display === "block" && !menuEl.contains(event.target)) {
     hideMenu();
   }
 });
 
-// Hide menu on Escape
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && menuEl.style.display === "block") {
     hideMenu();
   }
 });
 
-// Observe for dynamically added toolbars (e.g. when opening a new comment)
 const observer = new MutationObserver(() => {
   findAndInject();
 });
 
-observer.observe(document.body, { childList: true, subtree: true });
-findAndInject();
+// ─── Enable / Disable ────────────────────────────────────────────────────────────
+
+let enabled = false;
+
+function enableExtension() {
+  if (enabled) return;
+  enabled = true;
+  observer.observe(document.body, { childList: true, subtree: true });
+  findAndInject();
+}
+
+function disableExtension() {
+  if (!enabled) return;
+  enabled = false;
+  observer.disconnect();
+  menuEl.style.display = "none";
+  document.querySelectorAll("[data-cc-btn]").forEach((btn) => btn.remove());
+  activeTextarea = null;
+  activeButton = null;
+}
+
+chrome.storage.sync.get(["disabled"], (result) => {
+  if (!result.disabled) {
+    enableExtension();
+  }
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "sync" && changes.disabled !== undefined) {
+    if (changes.disabled.newValue) {
+      disableExtension();
+    } else {
+      enableExtension();
+    }
+  }
+});
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === "enable") enableExtension();
+  else if (message.action === "disable") disableExtension();
+});

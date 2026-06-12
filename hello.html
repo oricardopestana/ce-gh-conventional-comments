@@ -1,6 +1,80 @@
 <html>
-    <body>
-        <h1>Hello Extensions</h1>
-        <script src="popup.js"></script>
-    </body>
+  <head>
+    <style>
+      body {
+        width: 280px;
+        margin: 0;
+        padding: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        color: #1f2328;
+      }
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .toggle-label {
+        font-weight: 500;
+        line-height: 1.4;
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 20px;
+        flex-shrink: 0;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background: #d0d7de;
+        border-radius: 20px;
+        transition: background 0.2s;
+      }
+      .slider::before {
+        content: "";
+        position: absolute;
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.2s;
+      }
+      .switch input:checked + .slider {
+        background: #1f883d;
+      }
+      .switch input:checked + .slider::before {
+        transform: translateX(16px);
+      }
+      .description {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #656d76;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toggle-row">
+      <span class="toggle-label">Enable Conventional Comments</span>
+      <label class="switch">
+        <input type="checkbox" id="toggle" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="description">
+      Adds a toolbar button to insert Conventional Comments labels in GitHub PR review textareas.
+    </div>
+    <script src="popup.js"></script>
+  </body>
 </html>
